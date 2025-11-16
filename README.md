@@ -1,4 +1,4 @@
-## 🎯 **THE CORE PROBLEM **
+## 🎯 THE CORE PROBLEM
 
 Imagine you have a messy desk with papers, sticky notes, and receipts scattered everywhere. Some papers have tables, some have just text, some have dates and numbers mixed in.
 
