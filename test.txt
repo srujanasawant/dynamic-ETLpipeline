@@ -1,0 +1,6 @@
+Name: John Doe
+Email: john@example.com
+Age: 30
+Department: Engineering
+
+{"employee_id": 1001, "salary": 75000}
