@@ -1,7 +1,3 @@
-Alright, let me break this down like I'm explaining it to a friend over coffee. I'll make it super simple and build up your understanding step by step.
-
----
-
 ## 🎯 **THE CORE PROBLEM **
 
 Imagine you have a messy desk with papers, sticky notes, and receipts scattered everywhere. Some papers have tables, some have just text, some have dates and numbers mixed in.
