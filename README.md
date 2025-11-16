@@ -1,311 +1,302 @@
-Create a clean, professional, simple but still  technical, pretty presentation-ready ppt that includes a system architecture diagram based on the information given below:
+Alright, let me break this down like I'm explaining it to a friend over coffee. I'll make it super simple and build up your understanding step by step.
 
-Problem Statement : Dynamic ETL Pipeline for Unstructured Data
-Challenge: Given unstructured scraped data that evolves over time, develop an ETL (Extract, Transform, Load) pipeline that can generate dynamic schemas on-the-fly.
-Key Requirements:
-* Handle completely unstructured input data
-* Adapt to data that changes multiple times
-* Generate schemas dynamically as data evolves
-* Address the challenge of storing data when structure is unknown upfront
-Use Case: This simulates real-world scenarios where data sources are unpredictable and constantly changing, making static schema definitions impractical.
+---
 
-6-Layer Architecture:
+## 🎯 **THE CORE PROBLEM **
 
-    API Gateway
-    FastAPI Framework
-    RESTful Endpoints
-    Request Validation
-    Async Processing
-    Ingestion
-    PDF Parser + OCR
-    Text Parser
-    Markdown Parser
-    File Validation
-    Parsing
-    Fragment Detection
-    Type Inference
-    Data Cleaning
-    Field Extraction
-    Schema
-    Dynamic Generation
-    Version Control
-    Evolution Engine
-    Migration Manager
-    Query
-    LLM Integration
-    NL to SQL
-    Query Execution
-    Result Formatting
-    Storage
-    PostgreSQL
-    MongoDB
-    Redis Cache
-    MinIO/S3
+Imagine you have a messy desk with papers, sticky notes, and receipts scattered everywhere. Some papers have tables, some have just text, some have dates and numbers mixed in.
 
-    Overview Modern data comes in unpredictable formats — PDFs, Markdown files, text logs, emails, semi-structured blocks, and mixed patterns within a single file. Traditional ETL pipelines struggle because they require fixed schemas and break when the structure changes. This project solves that problem. It automatically:
-    accepts different file types (TXT, MD, PDF),
-    extracts useful structured data,
-    cleans and normalizes it,
-    infers field types,
-    generates and versions schemas,
-    stores data in both SQL and NoSQL databases,
+**Traditional databases** are like filing cabinets - they need everything organized in exact folders with exact labels. If a paper doesn't fit the format, you're stuck.
 
-    and supports natural-language querying powered by an LLM.
-    This document explains the architecture in a simple, progressive manner while staying technically solid.
-    Core Idea (The Crux) This system behaves like a smart factory for unstructured files.
-    Files arrive → TXT, PDF, MD
-    Parsers read the content
-    Detectors find structured patterns inside the raw text
-    Extractors convert those patterns into fields
-    Cleaner standardizes values and types
-    Schema generator builds/upgrades the schema
-    Data stored in SQL + NoSQL
+**Your project** is like having a super-smart assistant who:
+1. Looks at any messy paper you give them
+2. Figures out what information is on it
+3. Organizes it automatically
+4. Creates filing systems that adapt as you add more papers
 
-    Queries run via SQL or natural language through an LLM translator
-    This makes the system adaptable, self-evolving, and user-friendly.
+---
 
-    High-Level Architecture Diagram
+## 🧩 **THE CRUX**
 
-                 ┌───────────────────────────┐
-                 │         Client / UI        │
-                 │  curl, Postman, frontend   │
-                 └───────────────┬───────────┘
-                                 │
-                        HTTP Requests
-                                 │
-                 ┌───────────────▼────────────────┐
-                 │          FastAPI API Gateway     │
-                 │  /upload   /schema   /query      │
-                 └───────────────┬─────────────────┘
-                                 │
-                    File Bytes + Source ID
-                                 │
-                 ┌───────────────▼────────────────┐
-                 │        Ingestion Layer          │
-                 │  - PDF parser (pypdf)           │
-                 │  - TXT/MD decoder               │
-                 └───────────────┬────────────────┘
-                                 │
-                            Extracted Text
-                                 │
-                 ┌───────────────▼────────────────┐
-                 │        Parsing Engine           │
-                 │  - Fragment detector            │
-                 │  - Field extractor              │
-                 │  - Type inference               │
-                 │  - Data cleaner                 │
-                 └───────────────┬────────────────┘
-                                 │
-                         Cleaned Records
-                                 │
-                 ┌───────────────▼────────────────┐
-                 │         Schema Layer            │
-                 │  - Schema generator             │
-                 │  - Schema versioning            │
-                 │  - Evolution diffs              │
-                 └───────────────┬────────────────┘
-                                 │
-                       (Schema + Records)
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-    ┌────────────▼──────────┐  ┌────▼────────────┐  ┌──▼──────────────┐
-    │ PostgreSQL (SQL store) │  │ MongoDB (docs)  │  │  MinIO/S3 (raw) │
-    │ - Structured tables    │  │ - Parsed docs   │  │ - Raw files     │
-    │ - Schema versions      │  │ - Query results │  │ - Backups       │
-    └────────────────────────┘  └─────────────────┘  └──────────────────┘
-              │                  │
-              └──────────┬──────┘
-                         │
-                  Querying Layer
-                         │
-      ┌──────────────────▼──────────────────┐
-      │         LLM Query Translator         │
-      │     (NL → SQL → Safe Execution)      │
-      └──────────────────────────────────────┘
-    Key Components Explained Simply 4.1 API Gateway (FastAPI) This is the entry point where clients interact with the system. Endpoints:
-    POST /upload → Upload any file
-    GET /schema → View current schema
-    GET /schema/history → View schema evolution
-    POST /query → Natural language → SQL
-    GET /records → Fetch parsed data or query results Why FastAPI?
-    asynchronous = fast under load
-    built-in validation
-    automatic Swagger docs
+### **Traditional ETL (Extract, Transform, Load):**
+```
+You: "Here's a file with Name and Age"
+System: Creates table with [Name, Age]
+You: "Here's another file with Name, Age, and City"
+System: ❌ BREAKS! "I don't know what City is!"
+```
 
-4.2 Ingestion Layer (Parsers)
-This layer opens files and extracts usable text.
-File Type Method
-TXT UTF-8 decode
-MD UTF-8 decode (Markdown formatting ignored)
-PDF pypdf: reads text from each page
+### **Your Dynamic ETL:**
+```
+You: "Here's a file with Name and Age"
+System: Creates table with [Name, Age]
+You: "Here's another file with Name, Age, and City"
+System: ✅ "Oh, new field! Let me update the structure. Version 2.0 now!"
+```
 
-4.3 Parsing Engine
-The “brain” of the pipeline, made of four mini-modules:
-(1) Fragment Detector
-Finds bits of structured information:
-* JSON objects ({ ... })
-* Key-value lines (Age: 30)
-* Patterns resembling tables
-* Number-value pairs
-(2) Field Extractor
-Converts each detected fragment into:
-{"age": "30", "name": "John Doe"}
-(3) Type Inference
-Guesses type of each value:
-* "30" → integer
-* "true" → boolean
-* "2025-11-16" → date
-* "john@example.com" → email (string)
-(4) Data Cleaner
-Normalizes values:
-* trim whitespace
-* lowercase emails
-* convert types (string → number)
-* standardize keys ("Employee ID" → employee_id)
+**The magic:** The system **learns and evolves** instead of breaking.
 
-4.4 Schema Layer
-This is where the system “learns" structure.
-How schema is built
-After extraction, if fields are:
-employee_id: integer
-name: string
-salary: integer
-salary: integer
-The schema becomes:
-{
-  "employee_id": {"type": "integer"},
-  "name": {"type": "string"},
-  "salary": {"type": "integer"}
+---
+
+## 🏗️ **THE 6 LAYERS (Like a Factory Assembly Line)**
+
+Think of your system as a factory where messy files go in one end, and organized data comes out the other. Here are the 6 stations:
+
+### **Layer 1: API Gateway (The Receptionist)**
+- **What it does:** This is the front door where files arrive
+- **Technology:** FastAPI (a Python web framework)
+- **Real-world analogy:** Like a receptionist at a hospital who takes your forms and directs you to the right department
+
+**Endpoints (like different counters at the reception):**
+- `/upload` - "Drop off your file here"
+- `/schema` - "Want to see how we organized things?"
+- `/query` - "Want to ask questions about your data?"
+
+```python
+# Simple example
+@app.post("/upload")
+def upload_file(file):
+    # Someone uploaded a file
+    # Send it to the next layer
+```
+
+---
+
+### **Layer 2: Ingestion (The File Opener)**
+- **What it does:** Opens different types of files and reads the text inside
+- **Real-world analogy:** Like a mail opener who can handle envelopes, packages, and parcels
+
+**It handles:**
+- **PDF files** → Uses `pypdf` library to extract text
+- **Text files (.txt)** → Just reads them directly
+- **Markdown files (.md)** → Reads the text, ignoring formatting
+
+```python
+# Simplified example
+if file.endswith('.pdf'):
+    text = extract_from_pdf(file)
+elif file.endswith('.txt'):
+    text = open(file).read()
+```
+
+**Output:** Raw text extracted from the file
+
+---
+
+### **Layer 3: Parsing (The Detective)**
+- **What it does:** Looks at the raw text and finds patterns
+- **Real-world analogy:** Like a detective examining a crime scene for clues
+
+**Four sub-tasks:**
+
+**3a. Fragment Detector** - Finds structured pieces:
+```
+Raw text: "Name: John, Age: 25, Email: john@example.com"
+Detector: "I found 3 pieces of information here!"
+```
+
+**3b. Field Extractor** - Converts to key-value pairs:
+```
+Extracts: {
+    "name": "John",
+    "age": "25",
+    "email": "john@example.com"
 }
-If a new upload contains a new field (department), version increments:
-* v1: employee_id, name, salary
-* v2: employee_id, name, salary, department
-Version changes are saved.
+```
 
-4.5 Storage Layer
-PostgreSQL
-* Stores schema versions
-* Stores structured rows
-* Each source gets a table: data_{source_id}
-MongoDB
-* Stores raw fragments
-* Stores cleaned structured documents
-* Stores query results (for async queries)
-MinIO or S3
-* Stores original uploaded files
+**3c. Type Inference** - Guesses what type each value is:
+```
+"25" → This looks like a number! (integer)
+"john@example.com" → This looks like an email! (string)
+"2025-11-16" → This looks like a date! (date)
+```
 
-4.6 Query Layer (LLM Powered)
-User asks:
-"Show me all employees older than 25"
-The LLM translates this to SQL:
-SELECT * FROM data_test1 WHERE age > 25;
-The query is:
-* validated
-* executed
-* results returned
+**3d. Data Cleaner** - Makes everything consistent:
+```
+"  John  " → "John" (remove spaces)
+"JOHN@EXAMPLE.COM" → "john@example.com" (lowercase emails)
+"25" → 25 (convert string to number)
+```
 
-    Full Workflow in 8 Steps Step 1 — User uploads a file FastAPI receives the file and source ID. Step 2 — Parsing PDF → text TXT/MD → decode Step 3 — Fragment detection Detects:
-    JSON blocks
-    Key/value pairs
-    Tables
-    Markdown patterns Step 4 — Field extraction + cleaning Extracts key-value pairs Infers types Cleans text Step 5 — Schema generation Compares extracted fields with latest schema version Creates new version if needed Step 6 — Data storage
-    Structured → PostgreSQL
-    Flexible → MongoDB
-    Original file → S3/MinIO Step 7 — Response Returns file metadata and schema version. Step 8 — Querying LLM translates NL → SQL Execute → return results
-    Why This Architecture Works Well ✔️ Automatically adapts to different data formats No manual schema design. ✔️ Handles schema evolution over time Old + new files both supported. ✔️ Supports natural language queries Super useful for non-technical users. ✔️ Uses strengths of SQL and NoSQL Best of both worlds. ✔️ Modular pipeline Easy to extend parsers, add more file types, or integrate OCR.
+---
 
-“Our system can take messy files — PDF, Markdown, or raw text — and automatically extract structured information from them. It then generates a schema on its own, detects when fields change, and versions the schema so the system evolves over time. Data is stored in both SQL and Mongo depending on its structure. Users can then query the data in plain English, and an LLM safely translates those questions into SQL.”
-This clearly highlights:
-* automation
-* schema evolution
-* hybrid storage
-* natural language querying
+### **Layer 4: Schema (The Librarian)**
+- **What it does:** Creates and updates the "filing system" structure
+- **Real-world analogy:** Like a librarian who creates catalog systems
 
-Folder Structure:
-dynamic-etl-pipeline/
-├── README.md
-├── requirements.txt
-├── docker-compose.yml
-├── Dockerfile
-├── .env.example
-├── .gitignore
-├── setup.py
-├── pytest.ini
-├── alembic.ini
-├── app/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── config.py
-│   ├── api/
-│   │   ├── __init__.py
-│   │   ├── routes/
-│   │   │   ├── __init__.py
-│   │   │   ├── upload.py
-│   │   │   ├── schema.py
-│   │   │   ├── query.py
-│   │   │   └── records.py
-│   │   └── dependencies.py
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── ingestion/
-│   │   │   ├── __init__.py
-│   │   │   ├── file_handler.py
-│   │   │   ├── pdf_parser.py
-│   │   │   ├── text_parser.py
-│   │   │   └── markdown_parser.py
-│   │   ├── parsing/
-│   │   │   ├── __init__.py
-│   │   │   ├── fragment_detector.py
-│   │   │   ├── type_inference.py
-│   │   │   ├── field_extractor.py
-│   │   │   └── data_cleaner.py
-│   │   ├── schema/
-│   │   │   ├── __init__.py
-│   │   │   ├── generator.py
-│   │   │   ├── versioning.py
-│   │   │   ├── evolution.py
-│   │   │   ├── compatibility.py
-│   │   │   └── migration.py
-│   │   └── query/
-│   │       ├── __init__.py
-│   │       ├── llm_translator.py
-│   │       ├── query_executor.py
-│   │       └── result_normalizer.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── database.py
-│   │   ├── schema_models.py
-│   │   ├── source_models.py
-│   │   └── query_models.py
-│   ├── storage/
-│   │   ├── __init__.py
-│   │   ├── postgres.py
-│   │   ├── mongodb.py
-│   │   ├── s3_handler.py
-│   │   └── redis_cache.py
-│   └── utils/
-│       ├── __init__.py
-│       ├── logging.py
-│       ├── security.py
-│       └── validators.py
-├── tests/
-│   ├── __init__.py
-│   ├── conftest.py
-│   ├── test_ingestion.py
-│   ├── test_parsing.py
-│   ├── test_schema.py
-│   ├── test_query.py
-│   ├── test_api.py
-│   └── test_data/
-│       ├── tier_a/
-│       ├── tier_b/
-│       ├── tier_c/
-│       └── tier_d/
-├── scripts/
-│   ├── init_db.py
-│   ├── run_tests.py
-│   └── generate_test_data.py
-└── monitoring/
-    ├── prometheus.yml
-    └── grafana_dashboard.json
+**How it works:**
+
+**First file arrives:**
+```
+Fields found: name (string), age (integer)
+
+Schema Version 1.0:
+{
+    "name": "string",
+    "age": "integer"
+}
+```
+
+**Second file arrives with new field:**
+```
+Fields found: name (string), age (integer), city (string)
+
+Schema Version 1.1:
+{
+    "name": "string",
+    "age": "integer",
+    "city": "string"  ← NEW!
+}
+```
+
+**Why versioning?** 
+- Old data still works with old schema
+- New data works with new schema
+- You can track how your data evolved over time
+
+---
+
+### **Layer 5: Storage (The Warehouse)**
+- **What it does:** Stores data in different ways based on what's best
+- **Real-world analogy:** Like a warehouse with different storage areas
+
+**Why multiple databases?**
+
+**PostgreSQL (SQL)** - For structured, table-like data:
+```
+employee_id | name  | age | city
+1          | John  | 25  | NYC
+2          | Sarah | 30  | LA
+```
+- Good for: Organized data, relationships, complex queries
+- Like: A spreadsheet
+
+**MongoDB (NoSQL)** - For flexible, document-like data:
+```
+{
+    "name": "John",
+    "age": 25,
+    "hobbies": ["reading", "coding"],  ← Can have lists!
+    "address": {                        ← Can have nested objects!
+        "city": "NYC",
+        "zip": "10001"
+    }
+}
+```
+- Good for: Flexible structure, nested data
+- Like: A JSON file
+
+**Redis** - For fast, temporary storage:
+- Good for: Caching, session data
+- Like: Your computer's RAM
+
+**MinIO/S3** - For storing original files:
+- Good for: Backups, raw files
+- Like: A file cabinet
+
+---
+
+### **Layer 6: Query (The Translator)**
+- **What it does:** Lets people ask questions in normal English
+- **Real-world analogy:** Like having a translator who speaks both English and "computer"
+
+**Example:**
+```
+User types: "Show me all employees older than 25"
+
+LLM (AI) translates to SQL:
+SELECT * FROM employees WHERE age > 25;
+
+System executes and returns results:
+name  | age | city
+Sarah | 30  | LA
+Mike  | 27  | NYC
+```
+
+**Why this is cool:** Non-technical people can query data without knowing SQL!
+
+---
+
+## 🔄 **THE COMPLETE WORKFLOW (Step-by-Step Example)**
+
+Let's say you upload a PDF resume:
+
+**Step 1:** Upload
+```
+User uploads "john_resume.pdf" → API Gateway receives it
+```
+
+**Step 2:** Ingestion
+```
+PDF Parser extracts text:
+"Name: John Doe
+Age: 25
+Email: john@example.com
+Skills: Python, Java"
+```
+
+**Step 3:** Parsing
+```
+Fragment Detector: "I see 4 fields!"
+Field Extractor: 
+{
+    "name": "John Doe",
+    "age": "25",
+    "email": "john@example.com",
+    "skills": "Python, Java"
+}
+
+Type Inference:
+{
+    "name": "string",
+    "age": "integer",
+    "email": "string",
+    "skills": "string"
+}
+
+Data Cleaner:
+{
+    "name": "John Doe",
+    "age": 25,  ← Converted to number
+    "email": "john@example.com",  ← Lowercased
+    "skills": "Python, Java"
+}
+```
+
+**Step 4:** Schema Management
+```
+Check current schema... No schema exists!
+Create Schema Version 1.0:
+{
+    "name": "string",
+    "age": "integer",
+    "email": "string",
+    "skills": "string"
+}
+```
+
+**Step 5:** Storage
+```
+PostgreSQL: Store in 'resumes' table
+MongoDB: Store full document
+S3: Store original PDF file
+```
+
+**Step 6:** Query
+```
+User asks: "Show me resumes with Python skills"
+LLM translates: SELECT * FROM resumes WHERE skills LIKE '%Python%'
+Returns: John Doe's record
+```
+
+## 🛠️ **TECHNOLOGIES EXPLAINED SIMPLY**
+
+- **FastAPI**: Makes websites/APIs with Python (like Flask but faster)
+- **PostgreSQL**: Traditional database (like Excel but more powerful)
+- **MongoDB**: Flexible database (like storing JSON files)
+- **Redis**: Super fast temporary storage (like RAM)
+- **pypdf**: Opens and reads PDF files
+- **Docker**: Packages everything so it runs anywhere
+- **LLM API**: AI that understands language (like ChatGPT)
+
+---
